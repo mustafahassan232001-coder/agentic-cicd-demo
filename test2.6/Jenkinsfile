@@ -1,0 +1,22 @@
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Building application...'
+            }
+        }
+        stage('Test') {
+            steps {
+                echo 'Running tests...'
+                sh 'python3 -m unittest discover'
+            }
+        }
+        stage('Run') {
+            steps {
+                echo 'Running application...'
+                sh 'python3 main.py'
+            }
+        }
+    }
+}
