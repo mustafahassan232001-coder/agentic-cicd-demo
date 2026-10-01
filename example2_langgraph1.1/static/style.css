@@ -1,0 +1,4 @@
+body { font-family: sans-serif; max-width: 600px; margin: 20px auto; }
+form { margin-bottom: 20px; }
+.completed { text-decoration: line-through; color: gray; }
+li { margin-bottom: 10px; list-style: none; padding: 5px; border-bottom: 1px solid #ccc; }
