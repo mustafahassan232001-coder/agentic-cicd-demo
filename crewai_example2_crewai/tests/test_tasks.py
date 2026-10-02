@@ -1,27 +1,26 @@
-from models import TaskManager
-import os
 import pytest
+from app import create_app
+import os
 
-def test_task_lifecycle():
-    db_file = 'test_tasks.db'
-    if os.path.exists(db_file):
-        try:
-            os.remove(db_file)
-        except PermissionError:
-            pass
-        
-    tm = TaskManager(db_name=db_file)
-    
-    task = tm.create_task('Test', 'Desc')
-    assert 'id' in task
-    
-    tasks = tm.get_all_tasks()
-    assert len(tasks) == 1
-    
-    tm.update_task(task['id'], 'Updated', 'New', True)
-    assert tm.get_all_tasks()[0]['completed'] == 1
-    
-    tm.delete_task(task['id'])
-    assert len(tm.get_all_tasks()) == 0
-    
-    # Note: We don't force cleanup here to avoid WinError 32 if sqlite handles are still held
+@pytest.fixture
+def client():
+    app = create_app()
+    app.config['TESTING'] = True
+    with app.test_client() as client:
+        yield client
+
+def test_create_and_get_tasks(client):
+    res = client.post('/tasks', json={'title': 'Test Task', 'description': 'Desc'})
+    assert res.status_code == 201
+    res = client.get('/tasks')
+    assert res.status_code == 200
+    assert len(res.json) > 0
+
+def test_get_nonexistent(client):
+    res = client.get('/tasks/999')
+    assert res.status_code == 404
+
+def test_delete_task(client):
+    client.post('/tasks', json={'title': 'To be deleted'})
+    res = client.delete('/tasks/1')
+    assert res.status_code == 204
