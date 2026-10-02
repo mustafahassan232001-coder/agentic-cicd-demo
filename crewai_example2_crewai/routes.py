@@ -1,35 +1,35 @@
-from flask import Blueprint, request, jsonify
-from models import Task
+from flask import Blueprint, jsonify, request
+from models import TaskModel
 
-task_bp = Blueprint('task_bp', __name__)
+tasks_bp = Blueprint('tasks_bp', __name__)
 
-@task_bp.route('/tasks', methods=['GET'])
+@tasks_bp.route('/tasks', methods=['GET'])
 def get_tasks():
-    return jsonify(Task.get_all()), 200
+    return jsonify(TaskModel.get_all())
 
-@task_bp.route('/tasks/<int:task_id>', methods=['GET'])
-def get_task(task_id):
-    task = Task.get_by_id(task_id)
+@tasks_bp.route('/tasks/<int:id>', methods=['GET'])
+def get_task(id):
+    task = TaskModel.get_by_id(id)
     if not task: return jsonify({'error': 'Task not found'}), 404
-    return jsonify(task), 200
+    return jsonify(task)
 
-@task_bp.route('/tasks', methods=['POST'])
+@tasks_bp.route('/tasks', methods=['POST'])
 def create_task():
     data = request.get_json()
     if not data or 'title' not in data:
-        return jsonify({'error': 'Missing title'}), 400
-    task_id = Task.create(data['title'], data.get('description', ''), data.get('completed', False))
+        return jsonify({'error': 'Title is required'}), 400
+    task_id = TaskModel.create(data['title'], data.get('description', ''), data.get('completed', False))
     return jsonify({'id': task_id}), 201
 
-@task_bp.route('/tasks/<int:task_id>', methods=['PUT'])
-def update_task(task_id):
-    if not Task.get_by_id(task_id): return jsonify({'error': 'Task not found'}), 404
+@tasks_bp.route('/tasks/<int:id>', methods=['PUT'])
+def update_task(id):
+    if not TaskModel.get_by_id(id): return jsonify({'error': 'Task not found'}), 404
     data = request.get_json()
-    Task.update(task_id, data.get('title'), data.get('description'), data.get('completed'))
-    return jsonify({'message': 'Task updated'}), 200
+    TaskModel.update(id, data.get('title'), data.get('description'), data.get('completed', False))
+    return jsonify({'message': 'Task updated'})
 
-@task_bp.route('/tasks/<int:task_id>', methods=['DELETE'])
-def delete_task(task_id):
-    if not Task.get_by_id(task_id): return jsonify({'error': 'Task not found'}), 404
-    Task.delete(task_id)
-    return '', 204
+@tasks_bp.route('/tasks/<int:id>', methods=['DELETE'])
+def delete_task(id):
+    if not TaskModel.get_by_id(id): return jsonify({'error': 'Task not found'}), 404
+    TaskModel.delete(id)
+    return jsonify({'message': 'Task deleted'}), 204
