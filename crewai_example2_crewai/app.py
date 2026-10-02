@@ -1,13 +1,10 @@
 from flask import Flask
 from database import init_db
-from routes import task_bp
+from routes import tasks_bp
 
-def create_app():
-    app = Flask(__name__)
-    init_db()
-    app.register_blueprint(task_bp)
-    return app
+app = Flask(__name__)
+app.register_blueprint(tasks_bp)
 
 if __name__ == '__main__':
-    app = create_app()
+    init_db()
     app.run(debug=True)
