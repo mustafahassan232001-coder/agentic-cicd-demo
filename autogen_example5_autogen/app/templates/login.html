@@ -1,0 +1,1 @@
+<h1>Login</h1>{% with messages = get_flashed_messages() %}{% if messages %}<p>{{ messages[0] }}</p>{% endif %}{% endwith %}<form method='POST'><input name='username'><input name='password' type='password'><button>Login</button></form><a href='/register'>Register</a>
