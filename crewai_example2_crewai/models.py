@@ -1,12 +1,12 @@
 from database import get_db_connection
 
-class Task:
+class TaskModel:
     @staticmethod
     def get_all():
         conn = get_db_connection()
         tasks = conn.execute('SELECT * FROM tasks').fetchall()
         conn.close()
-        return [dict(t) for t in tasks]
+        return [dict(task) for task in tasks]
 
     @staticmethod
     def get_by_id(task_id):
