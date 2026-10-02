@@ -1,31 +1,45 @@
-from database import Database
+from database import get_db_connection
 
-class TaskManager:
-    def __init__(self, db_name='tasks.db'):
-        self.db = Database(db_name)
+class Task:
+    @staticmethod
+    def get_all():
+        conn = get_db_connection()
+        tasks = conn.execute('SELECT * FROM tasks').fetchall()
+        conn.close()
+        return [dict(t) for t in tasks]
 
-    def create_task(self, title, description):
-        if not title or not isinstance(title, str): return {'error': 'Invalid title'}
-        with self.db.get_connection() as conn:
-            cursor = conn.execute('INSERT INTO tasks (title, description) VALUES (?, ?)', (title, description))
-            conn.commit()
-            return {'id': cursor.lastrowid, 'title': title, 'description': description, 'completed': 0}
+    @staticmethod
+    def get_by_id(task_id):
+        conn = get_db_connection()
+        task = conn.execute('SELECT * FROM tasks WHERE id = ?', (task_id,)).fetchone()
+        conn.close()
+        return dict(task) if task else None
 
-    def get_all_tasks(self):
-        with self.db.get_connection() as conn:
-            return [dict(row) for row in conn.execute('SELECT * FROM tasks').fetchall()]
+    @staticmethod
+    def create(title, description, completed=False):
+        conn = get_db_connection()
+        cursor = conn.execute(
+            'INSERT INTO tasks (title, description, completed) VALUES (?, ?, ?)',
+            (title, description, int(completed))
+        )
+        task_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        return task_id
 
-    def update_task(self, task_id, title, description, completed):
-        with self.db.get_connection() as conn:
-            task = conn.execute('SELECT * FROM tasks WHERE id = ?', (task_id,)).fetchone()
-            if not task: return {'error': 'Task not found'}
-            conn.execute('UPDATE tasks SET title=?, description=?, completed=? WHERE id=?', 
-                         (title, description, 1 if completed else 0, task_id))
-            conn.commit()
-            return {'success': True}
+    @staticmethod
+    def update(task_id, title, description, completed):
+        conn = get_db_connection()
+        conn.execute(
+            'UPDATE tasks SET title = ?, description = ?, completed = ? WHERE id = ?',
+            (title, description, int(completed), task_id)
+        )
+        conn.commit()
+        conn.close()
 
-    def delete_task(self, task_id):
-        with self.db.get_connection() as conn:
-            conn.execute('DELETE FROM tasks WHERE id = ?', (task_id,))
-            conn.commit()
-            return {'success': True}
+    @staticmethod
+    def delete(task_id):
+        conn = get_db_connection()
+        conn.execute('DELETE FROM tasks WHERE id = ?', (task_id,))
+        conn.commit()
+        conn.close()
